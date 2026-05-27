@@ -7,12 +7,12 @@ import { handleError, successResponse, errorResponse } from '@/src/middleware/er
 // POST - Like a campaign (anonymous, identified by visitorId from client)
 export async function POST(
   request: NextRequest,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
     await connectDB();
 
-    const { slug } = params;
+    const { slug } = await params;
     const body = await request.json();
     const { visitorId } = body;
 
@@ -53,12 +53,12 @@ export async function POST(
 // DELETE - Unlike a campaign
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
     await connectDB();
 
-    const { slug } = params;
+    const { slug } = await params;
     const body = await request.json();
     const { visitorId } = body;
 
