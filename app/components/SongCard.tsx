@@ -3,13 +3,14 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { motion } from "framer-motion";
-import { Play, Heart, Users, Clock } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Play, Pause, Heart, Users, Clock } from "lucide-react";
 
 import { Badge } from "@/app/components/ui/badge";
 import { Button } from "@/app/components/ui/button";
 import { Card } from "@/app/components/ui/card";
 import { Progress } from "@/app/components/ui/progress";
+import { AudioPlayer } from "@/app/components/AudioPlayer";
 import { VoteButton } from "@/app/components/VoteButton";
 import { formatCurrency, getFundingPercentage } from "@/src/lib/utils";
 import type { Song } from "@/src/types";
@@ -21,10 +22,15 @@ interface SongCardProps {
 
 export function SongCard({ song, variant = "default" }: SongCardProps) {
   const [liked, setLiked] = useState(false);
+  const [playerOpen, setPlayerOpen] = useState(false);
   const percentage = getFundingPercentage(
     song.amountRaised,
     song.fundingGoal
   );
+
+  const previewStart: number = (song as any).previewStart ?? 0;
+  const previewEnd: number = (song as any).previewEnd ?? previewStart + 60;
+  const audioSrc: string = (song as any).audioPreview ?? (song as any).audioFile ?? "";
 
   /* ───────────── COMPACT ───────────── */
   if (variant === "compact") {
@@ -122,13 +128,18 @@ export function SongCard({ song, variant = "default" }: SongCardProps) {
           />
 
           {/* Play button */}
-          <VoteButton
-            campaignId={song.id}
-            campaignSlug={song.slug}
-            campaignStatus={song.status}
-            size="icon"
-            className="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition"
-          />
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              setPlayerOpen((v) => !v);
+            }}
+            className="absolute bottom-3 right-3 w-10 h-10 rounded-full bg-[#1DB954] flex items-center justify-center opacity-0 group-hover:opacity-100 transition shadow-lg hover:scale-105 active:scale-95"
+          >
+            {playerOpen
+              ? <Pause className="w-4 h-4 text-black fill-black" />
+              : <Play className="w-4 h-4 text-black fill-black ml-0.5" />
+            }
+          </button>
 
           {/* Like button */}
           <Button
@@ -154,8 +165,29 @@ export function SongCard({ song, variant = "default" }: SongCardProps) {
             </div>
           )}
         </div>
+      </Link>
 
-        {/* Content */}
+      {/* Inline audio player — expands on play click */}
+      <AnimatePresence>
+        {playerOpen && audioSrc && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden px-3 pt-2"
+          >
+            <AudioPlayer
+              src={audioSrc}
+              previewStart={previewStart}
+              previewEnd={previewEnd}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Content */}
+      <Link href={`/song/${song.slug}`}>
         <div className="p-4 space-y-3">
           <div>
             <h3 className="font-semibold truncate">{song.title}</h3>

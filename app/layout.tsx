@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "@/app/components/Navbar";
-import { MusicPlayer } from "@/app/components/MusicPlayer";
 import { MobileNav } from "@/app/components/MobileNav";
 import { Toaster } from "sonner";
 import { QueryProvider } from "@/src/providers/QueryProvider";
@@ -33,10 +32,9 @@ export default function RootLayout({
       <body className="min-h-screen bg-[#09090b] text-white antialiased">
         <QueryProvider>
           <Navbar />
-          <main className="pt-16 pb-32">
+          <main className="pt-16 pb-6">
             {children}
           </main>
-          <MusicPlayer />
           <MobileNav />
           <Toaster
             theme="dark"

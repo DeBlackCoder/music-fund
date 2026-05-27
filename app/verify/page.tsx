@@ -1,6 +1,7 @@
 "use client";
 import { motion, AnimatePresence } from "framer-motion";
-import { CheckCircle, Shield, Phone, Instagram, Twitter, FileText, Camera, ChevronRight, ChevronLeft, Star } from "lucide-react";
+import { CheckCircle, Shield, Phone, FileText, Camera, ChevronRight, ChevronLeft, Star } from "lucide-react";
+import { FaInstagram, FaXTwitter } from "react-icons/fa6";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/app/components/ui/button";
@@ -10,7 +11,7 @@ import { Avatar } from "@/app/components/ui/avatar";
 
 const steps = [
   { id: 1, label: "Phone", icon: Phone },
-  { id: 2, label: "Socials", icon: Instagram },
+  { id: 2, label: "Socials", icon: FaInstagram },
   { id: 3, label: "Face Photo", icon: Camera },
   { id: 4, label: "Declaration", icon: FileText },
 ];
@@ -20,7 +21,7 @@ export default function VerifyPage() {
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [form, setForm] = useState({
-    phone: "", instagram: "", twitter: "", youtube: "",
+    phone: "", FaInstagram: "", twitter: "", youtube: "",
     faceUploaded: false, declaration: false,
   });
 
@@ -132,14 +133,21 @@ export default function VerifyPage() {
                 <h2 className="text-xl font-bold text-white mb-1">Phone Verification</h2>
                 <p className="text-sm text-zinc-400">We&apos;ll send a verification code to confirm your number</p>
               </div>
-              <Input
-                label="Phone Number *"
-                type="tel"
-                placeholder="+234 800 000 0000"
-                value={form.phone}
-                onChange={(e) => update("phone", e.target.value)}
-                icon={<Phone className="w-4 h-4" />}
-              />
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-zinc-300">Phone Number *</label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none">
+                    <Phone className="w-4 h-4" />
+                  </span>
+                  <Input
+                    type="tel"
+                    placeholder="+234 800 000 0000"
+                    value={form.phone}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => update("phone", e.target.value)}
+                    className="pl-9 bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500"
+                  />
+                </div>
+              </div>
               <div className="bg-zinc-900/50 rounded-2xl p-4 border border-zinc-800/30">
                 <p className="text-sm text-zinc-400">📱 A 6-digit OTP will be sent to this number. Standard SMS rates may apply.</p>
               </div>
@@ -157,9 +165,48 @@ export default function VerifyPage() {
                 <h2 className="text-xl font-bold text-white mb-1">Social Media Handles</h2>
                 <p className="text-sm text-zinc-400">Link your social profiles to verify your artist identity</p>
               </div>
-              <Input label="Instagram Handle *" placeholder="@yourname" value={form.instagram} onChange={(e) => update("instagram", e.target.value)} icon={<Instagram className="w-4 h-4 text-pink-400" />} />
-              <Input label="Twitter/X Handle" placeholder="@yourname" value={form.twitter} onChange={(e) => update("twitter", e.target.value)} icon={<Twitter className="w-4 h-4 text-blue-400" />} />
-              <Input label="YouTube Channel" placeholder="Channel name or URL" value={form.youtube} onChange={(e) => update("youtube", e.target.value)} icon={<span className="text-red-400 text-xs font-bold">YT</span>} />
+              <div className="space-y-3">
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-zinc-300">Instagram Handle *</label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-pink-400 pointer-events-none">
+                      <FaInstagram className="w-4 h-4" />
+                    </span>
+                    <Input
+                      placeholder="@yourname"
+                      value={form.FaInstagram}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => update("FaInstagram", e.target.value)}
+                      className="pl-9 bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-zinc-300">Twitter/X Handle</label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-blue-400 pointer-events-none">
+                      <FaXTwitter className="w-4 h-4" />
+                    </span>
+                    <Input
+                      placeholder="@yourname"
+                      value={form.twitter}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => update("twitter", e.target.value)}
+                      className="pl-9 bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-zinc-300">YouTube Channel</label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-red-400 text-xs font-bold pointer-events-none">YT</span>
+                    <Input
+                      placeholder="Channel name or URL"
+                      value={form.youtube}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => update("youtube", e.target.value)}
+                      className="pl-9 bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500"
+                    />
+                  </div>
+                </div>
+              </div>
               <div className="bg-amber-500/5 border border-amber-500/20 rounded-2xl p-4">
                 <p className="text-sm text-amber-400 font-medium mb-1">⚠️ Important</p>
                 <p className="text-xs text-zinc-400">Your social profiles must show music content and match the name on your Vibefund account.</p>

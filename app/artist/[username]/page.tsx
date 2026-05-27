@@ -1,10 +1,11 @@
 "use client";
-import { motion } from "framer-motion";
-import { CheckCircle, MapPin, Music, Heart, Share2, ExternalLink, Play, Link2 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { CheckCircle, MapPin, Music, Heart, Share2, ExternalLink, Play, Pause } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { use, useState } from "react";
 import { SongCard } from "@/app/components/SongCard";
+import { AudioPlayer } from "@/app/components/AudioPlayer";
 import { Avatar } from "@/app/components/ui/avatar";
 import { Badge } from "@/app/components/ui/badge";
 import { Button } from "@/app/components/ui/button";
@@ -19,9 +20,76 @@ const tabs = [
   { id: "music", label: "Music" },
 ];
 
+/* ── MusicRow: song list item with inline player ─────────── */
+function MusicRow({
+  song,
+  index,
+  audioSrc,
+  previewStart,
+  previewEnd,
+}: {
+  song: any;
+  index: number;
+  audioSrc: string;
+  previewStart: number;
+  previewEnd: number;
+}) {
+  const [playerOpen, setPlayerOpen] = useState(false);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: -10 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ delay: index * 0.06 }}
+      className="bg-[#121214] rounded-2xl border border-zinc-800/50 hover:border-zinc-700 transition-colors overflow-hidden"
+    >
+      <div className="flex items-center gap-4 p-4">
+        {/* Cover + play toggle */}
+        <button
+          onClick={() => setPlayerOpen((v) => !v)}
+          className="relative w-14 h-14 rounded-xl overflow-hidden flex-shrink-0 group"
+        >
+          <Image src={song.coverArt} alt={song.title} fill className="object-cover" unoptimized />
+          <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+            {playerOpen
+              ? <Pause className="w-5 h-5 text-white fill-white" />
+              : <Play className="w-5 h-5 text-white fill-white" />
+            }
+          </div>
+        </button>
+
+        {/* Info */}
+        <Link href={`/song/${song.slug}`} className="flex-1 min-w-0">
+          <p className="font-semibold text-white truncate hover:text-[#1DB954] transition">{song.title}</p>
+          <p className="text-sm text-zinc-400">{song.genre}</p>
+          <Progress value={getFundingPercentage(song.amountRaised, song.fundingGoal)} size="sm" className="mt-2" />
+        </Link>
+
+        <div className="text-right flex-shrink-0">
+          <p className="text-sm font-bold text-[#1DB954]">{getFundingPercentage(song.amountRaised, song.fundingGoal)}%</p>
+          <p className="text-xs text-zinc-500">{song.daysLeft}d left</p>
+        </div>
+      </div>
+
+      {/* Inline player */}
+      {playerOpen && audioSrc && (
+        <div className="px-4 pb-4">
+          <AudioPlayer
+            src={audioSrc}
+            previewStart={previewStart}
+            previewEnd={previewEnd}
+            title={song.title}
+            artist={typeof song.artist === "string" ? song.artist : song.artist?.artistName}
+          />
+        </div>
+      )}
+    </motion.div>
+  );
+}
+
 export default function ArtistProfilePage({ params }: { params: Promise<{ username: string }> }) {
   const { username } = use(params);
-  const artist = mockArtists.find((a) => a.username === username) || mockArtists[0];
+  const artist = ((mockArtists as any[]).find((a) => a.username === username) || mockArtists[0]) as any;
   const artistSongs = mockSongs.filter((s) => s.artistId === artist.id);
   const [following, setFollowing] = useState(false);
 
@@ -65,7 +133,7 @@ export default function ArtistProfilePage({ params }: { params: Promise<{ userna
                   <span className="text-sm">{artist.location}</span>
                 </div>
                 <div className="flex gap-2 flex-wrap">
-                  {artist.genre.map((g) => <Badge key={g} variant="muted">{g}</Badge>)}
+                  {(artist.genre as string[]).map((g) => <Badge key={g} variant="muted">{g}</Badge>)}
                 </div>
               </motion.div>
             </div>
@@ -96,15 +164,15 @@ export default function ArtistProfilePage({ params }: { params: Promise<{ userna
         </motion.div>
 
         {/* Social Links */}
-        {Object.keys(artist.socialLinks).length > 0 && (
+        {artist.socialLinks && Object.keys(artist.socialLinks).length > 0 && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }} className="flex gap-3 mb-8 flex-wrap">
-            {Object.entries(artist.socialLinks).map(([platform, handle]) => {
+            {Object.entries(artist.socialLinks as Record<string, string>).map(([platform, handle]) => {
               const info = socialIcons[platform];
               if (!handle || !info) return null;
               return (
                 <a key={platform} href="#" className="flex items-center gap-2 px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-2xl text-sm text-zinc-400 hover:text-white hover:border-zinc-600 transition-colors">
                   <span>{info.emoji}</span>
-                  <span className="hidden sm:inline">{handle}</span>
+                  <span className="hidden sm:inline">{handle as string}</span>
                 </a>
               );
             })}
@@ -147,7 +215,7 @@ export default function ArtistProfilePage({ params }: { params: Promise<{ userna
                   <div className="bg-[#121214] rounded-3xl border border-zinc-800/50 p-6">
                     <h3 className="font-bold text-white mb-4">Genres</h3>
                     <div className="flex gap-2 flex-wrap">
-                      {artist.genre.map((g) => <Badge key={g} variant="accent" className="text-sm px-3 py-1">{g}</Badge>)}
+                      {(artist.genre as string[]).map((g) => <Badge key={g} variant="accent" className="text-sm px-3 py-1">{g}</Badge>)}
                     </div>
                   </div>
                   <div className="bg-[#121214] rounded-3xl border border-zinc-800/50 p-6">
@@ -176,29 +244,21 @@ export default function ArtistProfilePage({ params }: { params: Promise<{ userna
 
               {activeTab === "music" && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {mockSongs.slice(0, 6).map((song, i) => (
-                    <motion.div key={song.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.06 }}>
-                      <Link href={`/song/${song.slug}`}>
-                        <div className="flex items-center gap-4 p-4 bg-[#121214] rounded-2xl border border-zinc-800/50 hover:border-zinc-700 transition-colors cursor-pointer group">
-                          <div className="relative w-14 h-14 rounded-xl overflow-hidden flex-shrink-0">
-                            <Image src={song.coverArt} alt={song.title} fill className="object-cover" unoptimized />
-                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                              <Play className="w-5 h-5 text-white fill-white" />
-                            </div>
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="font-semibold text-white truncate">{song.title}</p>
-                            <p className="text-sm text-zinc-400">{song.genre}</p>
-                            <Progress value={getFundingPercentage(song.amountRaised, song.fundingGoal)} size="sm" className="mt-2" />
-                          </div>
-                          <div className="text-right flex-shrink-0">
-                            <p className="text-sm font-bold text-[#1DB954]">{getFundingPercentage(song.amountRaised, song.fundingGoal)}%</p>
-                            <p className="text-xs text-zinc-500">{song.daysLeft}d left</p>
-                          </div>
-                        </div>
-                      </Link>
-                    </motion.div>
-                  ))}
+                  {mockSongs.slice(0, 6).map((song, i) => {
+                    const previewStart: number = (song as any).previewStart ?? 0;
+                    const previewEnd: number = (song as any).previewEnd ?? previewStart + 60;
+                    const audioSrc: string = (song as any).audioPreview ?? (song as any).audioFile ?? "";
+                    return (
+                      <MusicRow
+                        key={song.id}
+                        song={song}
+                        index={i}
+                        audioSrc={audioSrc}
+                        previewStart={previewStart}
+                        previewEnd={previewEnd}
+                      />
+                    );
+                  })}
                 </div>
               )}
             </motion.div>
